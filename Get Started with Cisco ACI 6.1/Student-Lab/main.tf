@@ -5,6 +5,10 @@ terraform {
       source = "CiscoDevNet/aci"
       version = ">=2.17.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = ">=0.9.0"
+    }
   }
 }
 
@@ -16,20 +20,43 @@ provider "aci" {
   insecure = true
 }
 
-module "aci" {
-  # A link to the GitHub is here "github.com/netascode/terraform-aci-nac-aci"
+# Step 1: Deploy node policies first (fabric membership)
+module "aci_nodes" {
   source  = "netascode/nac-aci/aci"
   version = ">=1.1.0"
 
-  # This line points the module to the data/ directory, which is where we store our configuration
   yaml_directories = ["data"]
 
-  # Each item here controls what the module expects to configure from the .yaml files in the data/ directory
-  # All policies are managed to create the complete lab environment in one terraform apply
+  # Only manage node policies in this step
+  manage_access_policies    = false
+  manage_fabric_policies    = false
+  manage_pod_policies       = false
+  manage_node_policies      = true
+  manage_interface_policies = false
+  manage_tenants            = false
+}
+
+# Step 2: Wait 4 minutes for node discovery to complete
+resource "time_sleep" "wait_for_node_discovery" {
+  depends_on = [module.aci_nodes]
+
+  create_duration = "4m"
+}
+
+# Step 3: Deploy all remaining policies after nodes are discovered
+module "aci" {
+  depends_on = [time_sleep.wait_for_node_discovery]
+
+  source  = "netascode/nac-aci/aci"
+  version = ">=1.1.0"
+
+  yaml_directories = ["data"]
+
+  # Manage everything except node policies (already done)
   manage_access_policies    = true
   manage_fabric_policies    = true
   manage_pod_policies       = true
-  manage_node_policies      = true
+  manage_node_policies      = false
   manage_interface_policies = true
   manage_tenants            = true
 }
