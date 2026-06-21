@@ -51,9 +51,6 @@ module "aci_nodes" {
 
   yaml_directories = ["data"]
 
-  # Remove "orchestrator:terraform" annotation
-  annotation = ""
-
   # Only manage node policies in this step
   manage_access_policies    = false
   manage_fabric_policies    = false
@@ -80,9 +77,6 @@ module "aci" {
   version = ">=1.1.0"
 
   yaml_directories = ["data"]
-
-  # Remove "orchestrator:terraform" annotation
-  annotation = ""
 
   # Manage everything except node policies (already done)
   manage_access_policies    = true
