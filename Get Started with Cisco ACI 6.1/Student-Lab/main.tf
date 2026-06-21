@@ -78,7 +78,7 @@ module "aci_nodes" {
 resource "time_sleep" "wait_for_node_discovery" {
   depends_on = [module.aci_nodes]
 
-  create_duration = "4m"
+  create_duration = "3m"
 }
 
 # ==================== STEP 3: REMAINING POLICIES ====================
