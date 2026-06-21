@@ -27,7 +27,7 @@ resource "aci_rest_managed" "global_aes_passphrase" {
   class_name = "pkiExportEncryptionKey"
   content = {
     strongEncryptionEnabled = "yes"
-    passphrase              = "C1sco12345!"
+    passphrase              = "C1sco1234567890!"
   }
 }
 
