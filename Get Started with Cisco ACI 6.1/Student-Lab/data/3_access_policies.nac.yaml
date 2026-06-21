@@ -101,8 +101,8 @@ apic:
 
     # ==================== AAEPs ====================
     aaeps:
-      # VIRTUAL-AEP - For VMM and Physical domains
-      - name: VIRTUAL-AEP
+      # VIRTUAL-AEP1 - For VMM and Physical domains
+      - name: VIRTUAL-AEP1
         physical_domains:
           - Baremetal
         vmware_vmm_domains:
@@ -145,7 +145,7 @@ apic:
       # ESX-SRVR05 - Access Interface for VMM
       - name: ESX-SRVR05
         type: access
-        aaep: VIRTUAL-AEP
+        aaep: VIRTUAL-AEP1
         cdp_policy: CDP_Enable
         lldp_policy: LLDP_Enable
 
@@ -163,19 +163,21 @@ apic:
             from: 202
             to: 202
 
+      # L3Out switch profile
       - name: LEAFA-SW-PROF
         selectors:
-          - name: LEAF-201
+          - name: LEAF-107
             from: 201
             to: 201
 
     # ==================== INTERFACE PROFILES ====================
     leaf_interface_profiles:
-      # Leaf 7 interface profile
+      # Leaf 7 interface profile - for VMM VPC on ports 1/4-5
       - name: LEAF-7-INT-PROF
         selectors:
-          - name: E1-4
-            port: 4
+          - name: E1-4-5
+            from_port: 4
+            to_port: 5
             policy_group: IPG-SW2-VPC
             policy_group_type: vpc
 
@@ -187,11 +189,18 @@ apic:
             policy_group: ESX-SRVR05
             policy_group_type: access
 
-      # LEAF1-INT-PROF for L3Out
-      - name: LEAF1-INT-PROF
+      # LEAFA-INT-PROF for L3Out VPC interface on port 1/14
+      - name: LEAFA-INT-PROF
         selectors:
-          - name: LEAFA-E4-5
-            from_port: 4
-            to_port: 5
+          - name: LEAFA-E1-14
+            port: 14
+            policy_group: IPG-SW2-VPC
+            policy_group_type: vpc
+
+      # LEAFA-ROUTERS-INT-PROF for L3Out access port 1/15
+      - name: LEAFA-ROUTERS-INT-PROF
+        selectors:
+          - name: LEAFA-E1-15
+            port: 15
             policy_group: IPG-ROUTERS
             policy_group_type: access

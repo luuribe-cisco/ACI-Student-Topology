@@ -29,7 +29,7 @@ You have been asked to configure a VPC connection for VMware ESXi hosts connecte
    - VPC ID: `278`
    - Use the default VPC Domain Policy
 
-2. Create an Interface Profile named `LEAF-8-INT-PROF` with an Interface Selector `L7-8-E1` configured for port Eth1/1
+2. Create an Interface Profile named `LEAF-8-INT-PROF` with an Interface Selector `L7-8-E1-4-5` configured for ports Eth1/4-5
 
 3. Associate the interface selector with the existing Interface Policy Group `ESX-SRV03`
 
@@ -39,7 +39,7 @@ You have been asked to configure a VPC connection for VMware ESXi hosts connecte
    - Verify CDP policy behavior matches its name
    - Verify LLDP policy behavior matches its name
    - Verify port-channel mode is appropriate for VMware (MAC Pinning)
-   - Ensure the correct AAEP is assigned (`VIRTUAL-AEP`)
+   - Ensure the correct AAEP is assigned (`VIRTUAL-AEP1`)
 
 **Verification:** The VMM domain should show as connected through the VPC interface.
 
@@ -96,7 +96,7 @@ An L3Out named `CORE-L3OUT` has been partially configured for BGP peering with a
 **L3Out Requirements:**
 1. Configure the correct loopback address on Node 201 (Router ID: 1.1.1.101)
 
-2. Correct the interface IP address on Eth1/5. Reference information:
+2. Correct the interface IP address on Eth1/15. Reference information:
    ```
    Neighbor interface Eth3/12: 172.16.111.1/30
    ```
@@ -151,7 +151,7 @@ router bgp 65502
     address-family ipv4 unicast
 
 interface Ethernet3/12
-  description ACI Leaf107 Eth1-5
+  description ACI Leaf107 Eth1-15
   ip address 172.16.111.1/30
 
 interface loopback7

@@ -25,9 +25,10 @@ terraform apply -auto-approve
 ### Access Policies
 - **VLAN Pools**: vmm-pool (150-160), baremetal-pool (50-60, 902), l3out-pool (900)
 - **Domains**: Baremetal (Physical), EXTERNAL-L3-DOM (L3)
-- **AAEPs**: VIRTUAL-AEP, NETWORK-AEP
+- **AAEPs**: VIRTUAL-AEP1, NETWORK-AEP
 - **Interface Policy Groups**: ESX-SRV03, IPG-SW2-VPC, IPG-ROUTERS, ESX-SRVR05
 - **Switch Profiles**: LEAF-7-SW-PROF, LEAF-8-SW-PROF, LEAFA-SW-PROF
+- **Interface Profiles**: LEAF-7-INT-PROF, LEAF-7-8-INT-PROF, LEAFA-INT-PROF, LEAFA-ROUTERS-INT-PROF
 
 ### VMM Integration
 - **Domain**: CCIE-DVS with intentional access_mode and allocation errors
@@ -45,7 +46,7 @@ terraform apply -auto-approve
 |-----------|-------|-----|
 | CDP_Disable policy | Actually enabled | Set admin_state to false |
 | LLDP_Enable policy | Actually disabled | Set admin states to true |
-| ESX-SRV03 IPG | Missing AAEP | Assign VIRTUAL-AEP |
+| ESX-SRV03 IPG | Missing AAEP | Assign VIRTUAL-AEP1 |
 | ESX-SRV03 IPG | Wrong port-channel | Change to MAC Pinning |
 | VMM Domain | read-only mode | Change to read-write |
 | vmm-pool | static allocation | Change to dynamic |

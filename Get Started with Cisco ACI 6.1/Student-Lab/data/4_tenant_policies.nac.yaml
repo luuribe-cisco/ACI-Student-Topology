@@ -204,7 +204,7 @@ apic:
                 - name: CORE-L3OUT-IntProf
                   interfaces:
                     - node_id: 201
-                      port: 5
+                      port: 15
                       # INTENTIONAL: Wrong IP address
                       ip: 10.10.10.107/30  # WRONG: Should be 172.16.111.2/30
                       # INTENTIONAL: No BGP peer configured
