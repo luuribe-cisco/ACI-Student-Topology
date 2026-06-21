@@ -1,15 +1,17 @@
 ---
+# Node Policies - Fabric Membership and Management
+# Note: Node 202 (Leaf 8) is included but will require manual discovery by student
 apic:
   node_policies:
     inb_endpoint_group: inb
     oob_endpoint_group: default
 
-# Pod 1
+    # Fabric nodes - Leaves and Spines
     nodes:
       - id: 201
         pod: 1
         role: leaf
-        name: Leaf1
+        name: Leaf-7
         serial_number: TEP-1-101
         set_role: true
         oob_address: 198.18.128.7/18
@@ -18,25 +20,25 @@ apic:
       - id: 202
         pod: 1
         role: leaf
-        name: Leaf2
+        name: Leaf-8
         serial_number: TEP-1-102
         set_role: true
         oob_address: 198.18.128.8/18
         oob_gateway: 198.18.128.1
 
-      - id: 101
+      - id: 203
         pod: 1
         role: spine
-        name: Spine1
+        name: Spine-3
         serial_number: TEP-1-103
         set_role: true
         oob_address: 198.18.128.5/18
         oob_gateway: 198.18.128.1
 
-      - id: 102
+      - id: 204
         pod: 1
         role: spine
-        name: Spine2
+        name: Spine-4
         serial_number: TEP-1-104
         set_role: true
         oob_address: 198.18.128.6/18

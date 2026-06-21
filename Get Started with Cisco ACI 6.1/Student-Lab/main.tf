@@ -8,11 +8,12 @@ terraform {
   }
 }
 
-# Login information for the APIC
+# Login information for the APIC - Hardcoded for dCloud lab
 provider "aci" {
-  username = var.apic_username
-  password = var.apic_password
-  url      = var.apic_url
+  username = "admin"
+  password = "C1sco12345"
+  url      = "https://198.18.133.200"
+  insecure = true
 }
 
 module "aci" {
@@ -24,11 +25,11 @@ module "aci" {
   yaml_directories = ["data"]
 
   # Each item here controls what the module expects to configure from the .yaml files in the data/ directory
-  # The values are boolean and should be 'true' or 'false', depending on what is in the data/ directory 
-  manage_access_policies    = false
+  # All policies are managed to create the complete lab environment in one terraform apply
+  manage_access_policies    = true
   manage_fabric_policies    = true
-  manage_pod_policies       = false
-  manage_node_policies      = false
-  manage_interface_policies = false
-  manage_tenants            = false
+  manage_pod_policies       = true
+  manage_node_policies      = true
+  manage_interface_policies = true
+  manage_tenants            = true
 }

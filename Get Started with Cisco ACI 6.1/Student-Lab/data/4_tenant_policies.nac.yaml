@@ -1,0 +1,222 @@
+---
+# Tenant Policies - Xandar Tenant with VRFs, BDs, EPGs, Contracts, and L3Out
+# Contains intentional misconfigurations for student troubleshooting
+apic:
+  tenants:
+    - name: Xandar
+      managed: true
+      description: ACI Study Lab - Xandar Tenant
+
+      # ==================== FILTERS ====================
+      filters:
+        - name: ICMP
+          entries:
+            - name: icmp
+              protocol: icmp
+
+        - name: HTTP
+          entries:
+            - name: http
+              ethertype: ipv4
+              protocol: tcp
+              destination_from_port: 80
+              destination_to_port: 80
+
+        - name: HTTPS
+          entries:
+            - name: https
+              ethertype: ipv4
+              protocol: tcp
+              destination_from_port: 443
+              destination_to_port: 443
+
+      # ==================== CONTRACTS ====================
+      contracts:
+        # PING Contract
+        # INTENTIONAL MISCONFIGURATION: Scope is VRF (should be Application Profile)
+        - name: PING
+          scope: context  # WRONG: Should be 'application-profile'
+          subjects:
+            - name: icmp
+              filters:
+                - filter: ICMP
+                  action: permit
+
+        # INET-TO-WEB Contract
+        # INTENTIONAL MISCONFIGURATION: Scope is Application Profile (should be VRF)
+        # INTENTIONAL: Missing HTTP/HTTPS filters (only ICMP)
+        - name: INET-TO-WEB
+          scope: application-profile  # WRONG: Should be 'context' (VRF)
+          subjects:
+            - name: icmp-only
+              filters:
+                - filter: ICMP
+                  action: permit
+              # MISSING: HTTP and HTTPS filters - student must add
+
+      # ==================== VRFs ====================
+      vrfs:
+        - name: LEGACY-VRF
+        - name: PROD-VRF
+        - name: DEV-VRF
+
+      # ==================== BRIDGE DOMAINS ====================
+      bridge_domains:
+        # BD-LEGACY
+        - name: BD-LEGACY
+          unknown_unicast: proxy
+          vrf: LEGACY-VRF
+          subnets:
+            - ip: 192.168.99.254/24
+              public: false
+              shared: false
+
+        # BD-PROD - Multiple subnets
+        - name: BD-PROD
+          unknown_unicast: proxy
+          vrf: PROD-VRF
+          subnets:
+            - ip: 172.16.2.254/24
+              public: false
+              shared: false
+            - ip: 172.16.3.254/24
+              public: false
+              shared: false
+            - ip: 172.16.4.254/24
+              public: false
+              shared: false
+            - ip: 172.16.5.254/24
+              public: false
+              shared: false
+
+        # BD-DEV
+        - name: BD-DEV
+          unknown_unicast: proxy
+          vrf: DEV-VRF
+          subnets:
+            - ip: 172.16.1.254/24
+              public: false
+              shared: false
+
+      # ==================== APPLICATION PROFILES & EPGs ====================
+      application_profiles:
+        # LEGACY-DIAG-APP
+        - name: LEGACY-DIAG-APP
+          description: Legacy diagnostic application
+          endpoint_groups:
+            - name: LEGACY-DIAG
+              bridge_domain: BD-LEGACY
+              vmware_vmm_domains:
+                - name: CCIE-DVS
+                  deployment_immediacy: lazy
+                  resolution_immediacy: pre-provision
+              subnets:
+                - ip: 192.168.99.254/24
+                  public: false
+                  shared: false
+
+        # PHARM-WEB
+        - name: PHARM-WEB
+          description: Pharmaceutical Web Application
+          endpoint_groups:
+            - name: WEB-EPG
+              bridge_domain: BD-PROD
+              vmware_vmm_domains:
+                - name: CCIE-DVS
+                  deployment_immediacy: lazy
+                  resolution_immediacy: immediate
+              subnets:
+                - ip: 172.16.2.254/24
+                  public: false
+                  shared: false
+              # INTENTIONAL: Contract not assigned - student must associate as consumer
+
+        # PHARM-APP
+        - name: PHARM-APP
+          description: Pharmaceutical Application Tier
+          endpoint_groups:
+            # INTENTIONAL: No VMM domain association - student must manually associate
+            - name: PHARM-APP
+              bridge_domain: BD-PROD
+              # vmware_vmm_domains: INTENTIONALLY MISSING
+              subnets:
+                - ip: 172.16.4.254/24
+                  public: false
+                  shared: false
+              contracts:
+                consumers:
+                  - PING
+
+        # PHARM-DB
+        - name: PHARM-DB
+          description: Pharmaceutical Database Tier
+          endpoint_groups:
+            - name: DB-CACHE-EPG
+              bridge_domain: BD-PROD
+              vmware_vmm_domains:
+                - name: CCIE-DVS
+                  deployment_immediacy: lazy
+                  resolution_immediacy: immediate
+              subnets:
+                - ip: 172.16.5.254/24
+                  public: false
+                  shared: false
+              contracts:
+                consumers:
+                  - PING
+
+            - name: DB-EPG
+              bridge_domain: BD-PROD
+              vmware_vmm_domains:
+                - name: CCIE-DVS
+                  deployment_immediacy: lazy
+                  resolution_immediacy: immediate  # Student should change to pre-provision
+              subnets:
+                - ip: 172.16.3.254/24
+                  public: false
+                  shared: false
+              contracts:
+                providers:
+                  - PING
+
+      # ==================== L3OUT ====================
+      # INTENTIONAL MISCONFIGURATIONS:
+      # - Wrong IP address on interface (10.10.10.107/30 instead of 172.16.111.2/30)
+      # - Missing loopback address
+      # - No BGP peer configuration
+      # - External EPG has 0.0.0.0/0 instead of 10.30.0.0/16
+      # - External EPG scope is empty
+      l3outs:
+        - name: CORE-L3OUT
+          vrf: PROD-VRF
+          domain: EXTERNAL-L3-DOM
+          bgp: true
+
+          node_profiles:
+            - name: CORE-L3OUT-NodeProf
+              nodes:
+                - node_id: 201
+                  router_id: 1.1.1.101
+                  # INTENTIONAL: No loopback address configured
+                  # loopback: should be 1.1.1.101
+
+              interface_profiles:
+                - name: CORE-L3OUT-IntProf
+                  interfaces:
+                    - node_id: 201
+                      port: 5
+                      # INTENTIONAL: Wrong IP address
+                      ip: 10.10.10.107/30  # WRONG: Should be 172.16.111.2/30
+                      # INTENTIONAL: No BGP peer configured
+                      # bgp_peers should have 7.7.7.1 remote-as 65502
+
+          external_endpoint_groups:
+            - name: CORPORATE-L3EPG
+              # INTENTIONAL: Wrong subnet
+              subnets:
+                - prefix: 0.0.0.0/0  # WRONG: Should be 10.30.0.0/16
+                  # INTENTIONAL: Missing import/export scope
+              # INTENTIONAL: Contract not assigned
+              # contracts:
+              #   providers:
+              #     - INET-TO-WEB

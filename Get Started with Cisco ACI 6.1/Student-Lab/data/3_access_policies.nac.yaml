@@ -1,0 +1,197 @@
+---
+# Access Policies - Pools, Domains, Policies, Interface Policy Groups, Switch/Interface Profiles
+apic:
+  access_policies:
+
+    # ==================== VLAN POOLS ====================
+    vlan_pools:
+      # VMM Pool - INTENTIONAL: static allocation (should be dynamic for VMM)
+      - name: vmm-pool
+        allocation: static
+        ranges:
+          - from: 150
+            to: 160
+
+      # Baremetal Pool - Static is correct for physical domain
+      - name: baremetal-pool
+        allocation: static
+        ranges:
+          - from: 50
+            to: 60
+          - from: 902
+            to: 902
+
+      # L3Out Pool
+      - name: l3out-pool
+        allocation: static
+        ranges:
+          - from: 900
+            to: 900
+
+    # ==================== PHYSICAL DOMAINS ====================
+    physical_domains:
+      - name: Baremetal
+        vlan_pool: baremetal-pool
+
+    # ==================== L3 DOMAINS ====================
+    routed_domains:
+      - name: EXTERNAL-L3-DOM
+        vlan_pool: l3out-pool
+
+    # ==================== INTERFACE POLICIES ====================
+    interface_policies:
+      # CDP Policies
+      # INTENTIONAL MISCONFIGURATION: CDP_Disable is actually enabled
+      cdp_policies:
+        - name: CDP_Enable
+          admin_state: true
+        - name: CDP_Disable
+          admin_state: true  # WRONG: Should be false
+
+      # LLDP Policies
+      # INTENTIONAL MISCONFIGURATION: LLDP_Enable is actually disabled
+      lldp_policies:
+        - name: LLDP_Enable
+          admin_rx_state: false  # WRONG: Should be true
+          admin_tx_state: false  # WRONG: Should be true
+        - name: LLDP_Disable
+          admin_rx_state: false
+          admin_tx_state: false
+
+      # L2 Policies
+      l2_policies:
+        - name: port-local-vlans
+          vlan_scope: portlocal
+
+      # MCP Policies
+      mcp_policies:
+        - name: MCP_Enable
+          admin_state: true
+
+      # Port Channel Policies
+      # INTENTIONAL: lacp-passive instead of mac-pinning for ESX-SRV03
+      port_channel_policies:
+        - name: LACP_Active
+          mode: active
+          min_links: 1
+          max_links: 16
+          suspend_individual: true
+          graceful_convergence: true
+          fast_select_standby: true
+        - name: LACP_Passive
+          mode: passive
+          min_links: 1
+          max_links: 16
+        - name: MAC_Pinning
+          mode: mac-pin
+        # VMM vSwitch policies
+        - name: CCIE-DVS_lacpLagPol
+          mode: mac-pin
+
+      # Spanning Tree Policies
+      spanning_tree_policies:
+        - name: BPDU_Filter
+          bpdu_filter: true
+
+      # Link Level Policies
+      link_level_policies:
+        - name: llp_10gbps
+          speed: 10G
+          auto: false
+
+    # ==================== AAEPs ====================
+    aaeps:
+      # VIRTUAL-AEP - For VMM and Physical domains
+      - name: VIRTUAL-AEP
+        physical_domains:
+          - Baremetal
+        vmware_vmm_domains:
+          - CCIE-DVS
+
+      # NETWORK-AEP - For L3Out
+      - name: NETWORK-AEP
+        routed_domains:
+          - EXTERNAL-L3-DOM
+
+    # ==================== INTERFACE POLICY GROUPS ====================
+    leaf_interface_policy_groups:
+      # ESX-SRV03 - VPC Interface Policy Group
+      # INTENTIONAL MISCONFIGURATION: No AAEP assigned (student must select VIRTUAL-AEP)
+      # INTENTIONAL: Uses LACP_Passive instead of MAC_Pinning
+      # INTENTIONAL: CDP_Disable (which is enabled) and LLDP_Enable (which is disabled) - reversed
+      - name: ESX-SRV03
+        type: vpc
+        # aaep: VIRTUAL-AEP  # INTENTIONALLY MISSING
+        cdp_policy: CDP_Disable
+        lldp_policy: LLDP_Enable
+        port_channel_policy: LACP_Passive
+
+      # IPG-SW2-VPC - VPC for L3Out interface
+      - name: IPG-SW2-VPC
+        type: vpc
+        aaep: NETWORK-AEP
+        cdp_policy: CDP_Enable
+        lldp_policy: LLDP_Disable
+        port_channel_policy: LACP_Active
+
+      # IPG-ROUTERS - Access port facing L3Out router
+      - name: IPG-ROUTERS
+        type: access
+        aaep: NETWORK-AEP
+        cdp_policy: CDP_Enable
+        lldp_policy: LLDP_Disable
+        link_level_policy: llp_10gbps
+
+      # ESX-SRVR05 - Access Interface for VMM
+      - name: ESX-SRVR05
+        type: access
+        aaep: VIRTUAL-AEP
+        cdp_policy: CDP_Enable
+        lldp_policy: LLDP_Enable
+
+    # ==================== SWITCH PROFILES ====================
+    leaf_switch_profiles:
+      - name: LEAF-7-SW-PROF
+        selectors:
+          - name: LEAF-201
+            from: 201
+            to: 201
+
+      - name: LEAF-8-SW-PROF
+        selectors:
+          - name: LEAF-202
+            from: 202
+            to: 202
+
+      - name: LEAFA-SW-PROF
+        selectors:
+          - name: LEAF-201
+            from: 201
+            to: 201
+
+    # ==================== INTERFACE PROFILES ====================
+    leaf_interface_profiles:
+      # Leaf 7 interface profile
+      - name: LEAF-7-INT-PROF
+        selectors:
+          - name: E1-4
+            port: 4
+            policy_group: IPG-SW2-VPC
+            policy_group_type: vpc
+
+      # Leaf 7-8 combined interface profile
+      - name: LEAF-7-8-INT-PROF
+        selectors:
+          - name: E1-3
+            port: 3
+            policy_group: ESX-SRVR05
+            policy_group_type: access
+
+      # LEAF1-INT-PROF for L3Out
+      - name: LEAF1-INT-PROF
+        selectors:
+          - name: LEAFA-E4-5
+            from_port: 4
+            to_port: 5
+            policy_group: IPG-ROUTERS
+            policy_group_type: access

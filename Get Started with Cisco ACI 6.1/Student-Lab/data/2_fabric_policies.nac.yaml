@@ -1,0 +1,87 @@
+---
+# Fabric Policies
+# INTENTIONAL MISCONFIGURATION: BGP ASN is 65000, should be 65501
+# INTENTIONAL MISCONFIGURATION: Only Spine 203 is configured as route reflector, student must add Spine 204
+apic:
+  fabric_policies:
+    global_settings:
+      domain_validation: true
+      enforce_subnet_check: true
+      opflex_authentication: true
+      disable_remote_endpoint_learn: true
+      overlapping_vlan_validation: true
+      remote_leaf_direct: false
+      reallocate_gipo: true
+
+    # BGP Route Reflector - Wrong ASN (65000 instead of 65501)
+    # Student must correct ASN and add Spine 204
+    fabric_bgp_as: 65000
+    fabric_bgp_rr:
+      - 203
+
+    # Banners
+    banners:
+      apic_gui_alias: ACI Study Lab Environment
+      apic_cli_banner: ACI Study Lab Environment
+      switch_cli_banner: ACI Study Lab Environment
+
+    # Pod policies
+    pod_policies:
+      date_time_policies:
+        - name: NTP
+          ntp_servers:
+            - hostname_ip: 198.18.128.1
+
+    # DNS policies
+    dns_policies:
+      - name: AD
+        mgmt_epg: oob
+        providers:
+          - ip: 198.18.133.1
+            preferred: true
+        domains:
+          - name: corp.dcloud.local
+            default: true
+
+    # VMM Domain - CCIE-DVS
+    # INTENTIONAL MISCONFIGURATION: access_mode is read-only (should be read-write)
+    # INTENTIONAL MISCONFIGURATION: vlan_pool allocation is static (should be dynamic)
+    vmware_vmm_domains:
+      - name: CCIE-DVS
+        credential_policies:
+          - name: vCenterUser
+            username: administrator@vsphere.local
+            password: C1sco12345
+
+        vcenters:
+          - name: vc1
+            hostname_ip: 198.18.133.30
+            datacenter: DC1
+            statistics: true
+            credential_policy: vCenterUser
+            mgmt_epg: inb
+
+        uplinks:
+          - id: 1
+            name: uplink1
+          - id: 2
+            name: uplink2
+
+        # WRONG: Should be read-write
+        access_mode: read-only
+        delimiter: '|'
+        tag_collection: true
+        vlan_pool: vmm-pool
+        # WRONG: Should be dynamic for VMM domain
+        allocation: static
+
+        vswitch:
+          cdp_policy: CCIE-DVS_cdpIfPol
+          lldp_policy: CCIE-DVS_lldpIfPol
+          port_channel_policy: CCIE-DVS_lacpLagPol
+
+          enhanced_lags:
+            - name: enhanced-lacp
+              mode: active
+              lb_mode: src-port-id
+              num_links: 2
