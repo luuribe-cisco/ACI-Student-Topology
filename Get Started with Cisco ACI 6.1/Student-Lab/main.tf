@@ -20,9 +20,22 @@ provider "aci" {
   insecure = true
 }
 
+# ==================== SET GLOBAL AES PASSPHRASE ====================
+# Required before snapshots can be created
+resource "aci_rest_managed" "global_aes_passphrase" {
+  dn         = "uni/exportcryptkey"
+  class_name = "pkiExportEncryptionKey"
+  content = {
+    strongEncryptionEnabled = "yes"
+    passphrase              = "C1sco12345!"
+  }
+}
+
 # ==================== SNAPSHOT: BLANK CONFIG ====================
 # Create snapshot before any configuration changes
 resource "aci_rest_managed" "snapshot_blank" {
+  depends_on = [aci_rest_managed.global_aes_passphrase]
+
   dn         = "uni/fabric/configexp-SnapshotBlankConfig"
   class_name = "configExportP"
   content = {
