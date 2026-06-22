@@ -9,8 +9,8 @@ apic:
       - name: vmm-pool
         allocation: static
         ranges:
-          - from: 150
-            to: 160
+          - from: 1000
+            to: 1500
 
       # Baremetal Pool - Static is correct for physical domain
       - name: baremetal-pool

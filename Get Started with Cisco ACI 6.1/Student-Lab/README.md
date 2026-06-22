@@ -23,7 +23,7 @@ terraform apply -auto-approve
 - **BGP Route Reflector**: Configured with wrong ASN and missing spine
 
 ### Access Policies
-- **VLAN Pools**: vmm-pool (150-160), baremetal-pool (50-60, 902), l3out-pool (900)
+- **VLAN Pools**: vmm-pool (1000-1500), baremetal-pool (50-60, 902), l3out-pool (900)
 - **Domains**: Baremetal (Physical), EXTERNAL-L3-DOM (L3)
 - **AAEPs**: VIRTUAL-AEP1, NETWORK-AEP
 - **Interface Policy Groups**: ESX-SRV03, IPG-SW2-VPC, IPG-ROUTERS, ESX-SRVR05
