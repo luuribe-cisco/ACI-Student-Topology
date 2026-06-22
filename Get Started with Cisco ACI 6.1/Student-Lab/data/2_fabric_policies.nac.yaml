@@ -50,7 +50,7 @@ apic:
       - name: CCIE-DVS
         credential_policies:
           - name: vCenterUser
-            username: administrator@vsphere.local
+            username: demouser@vsphere.local
             password: C1sco12345
 
         vcenters:
