@@ -14,7 +14,7 @@ terraform apply -auto-approve
 
 ## Credentials (Pre-configured)
 - **APIC**: https://198.18.133.200 (admin / C1sco12345)
-- **vCenter**: administrator@vsphere.local / C1sco12345
+- **vCenter**: demouser@vsphere.local / C1sco12345
 
 ## What's Deployed
 
